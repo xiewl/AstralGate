@@ -1,10 +1,10 @@
 ## Interface: 120105
 ## Title: AstralGate
 ## Title-zhCN: 星界之门 AstralGate
-## Author: R41Z0R; standalone adaptation
+## Author: Willen
 ## Version: 1.0.3
-## Notes: Standalone World Map teleport panel. Enable without Enhance QoL Core.
-## Notes-zhCN: 独立世界地图传送面板，无需启用 Enhance QoL 核心及其他模块。
+## Notes: Standalone World Map teleport panel
+## Notes-zhCN: 暴雪风格传送汇总面板
 ## SavedVariables: AstralGateDB, MapTeleportTestDB
 ## IconTexture: Interface\AddOns\AstralGate\Art\teleport_active.tga
 
