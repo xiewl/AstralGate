@@ -1,0 +1,27 @@
+## Interface: 120105
+## Title: AstralGate
+## Title-zhCN: 星界之门 AstralGate
+## Author: R41Z0R; standalone adaptation
+## Version: 1.0.3
+## Notes: Standalone World Map teleport panel. Enable without Enhance QoL Core.
+## Notes-zhCN: 独立世界地图传送面板，无需启用 Enhance QoL 核心及其他模块。
+## SavedVariables: AstralGateDB, MapTeleportTestDB
+## IconTexture: Interface\AddOns\AstralGate\Art\teleport_active.tga
+
+
+Libs\LibStub\LibStub.lua
+Core\Bootstrap.lua
+Locales\enUS.lua
+Locales\zhCN.lua
+Core\Database.lua
+Data\Hearthstones.lua
+Services\Hearthstones.lua
+Data\Teleports.lua
+Services\Housing.lua
+Services\Catalog.lua
+Libs\LibWorldMapTabs\LibWorldMapTabs.lua
+UI\SectionHeaders.lua
+UI\SettingsMenu.lua
+UI\WorldMapPanel.lua
+Services\RecentHistory.lua
+Core\Main.lua
