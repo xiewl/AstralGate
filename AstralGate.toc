@@ -2,7 +2,7 @@
 ## Title: AstralGate
 ## Title-zhCN: 星界之门 AstralGate
 ## Author: Willen
-## Version: 1.0.3
+## Version: 1.0.5
 ## Notes: Standalone World Map teleport panel
 ## Notes-zhCN: 暴雪风格传送汇总面板
 ## SavedVariables: AstralGateDB, MapTeleportTestDB

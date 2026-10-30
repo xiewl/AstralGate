@@ -21,7 +21,7 @@ addon.HearthstoneData = {
 	{ isToy = true, icon = 236222, id = 54452, spellID = 75136 }, -- Ethereal Portal
 	{ isToy = true, icon = 458254, id = 64488, spellID = 94719 }, -- The Innkeeper's Daughter
 	{ isToy = true, icon = 255348, id = 93672, spellID = 136508 }, -- Dark Portal
-	-- { isToy = true, icon = 1529351, id = 142542, spellID = 231504 }, -- Tome of Town Portal -- Cooldown is to long to be usable
+	{ isToy = true, icon = 1529351, id = 142542, spellID = 231504 }, -- Tome of Town Portal
 	{ isToy = true, icon = 2124576, id = 162973, spellID = 278244 }, -- Greatfather Winter's Hearthstone
 	{ isToy = true, icon = 2124575, id = 163045, spellID = 278559 }, -- Headless Horseman's Hearthstone
 	{ isToy = true, icon = 2491049, id = 165669, spellID = 285362 }, -- Lunar Elder's Hearthstone

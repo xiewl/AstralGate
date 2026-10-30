@@ -37,9 +37,31 @@ end
 
 function addon.Settings.BuildMenu(_, root)
 	root:SetTag("MENU_ASTRALGATE_TELEPORT_COMPENDIUM_SETTINGS")
-	Menu.AddCheckbox(root, "showRecentTeleports", L["showRecentTeleports"], L["showRecentTeleportsDesc"])
+	Menu.AddCheckbox(root, "teleportsSelectOnFirstOpen", L["teleportsSelectOnFirstOpen"], L["teleportsSelectOnFirstOpenDesc"])
 	Menu.AddCheckbox(root, "portalHideMissing", L["portalHideMissing"], L["portalHideMissingDesc"])
 	Menu.AddCheckbox(root, "portalShowTooltip", L["portalShowTooltip"], L["portalShowTooltipDesc"])
+
+	local recentLabel = addon.db.showRecentTeleports and tostring(addon.Recent.GetDisplayLimit()) or L["recentTeleportsHidden"]
+	local recentCount = root:CreateButton(L["recentTeleportsMenu"] .. ": " .. recentLabel)
+	recentCount:SetScrollMode(400)
+	recentCount:CreateRadio(L["recentTeleportsHidden"], function()
+		return not addon.db.showRecentTeleports
+	end, function()
+		if InCombatLockdown() then return end
+		addon.db.showRecentTeleports = false
+		Menu.Refresh()
+	end):SetEnabled(not InCombatLockdown())
+	for count = 2, 20, 2 do
+		local value = count
+		recentCount:CreateRadio(tostring(value), function()
+			return addon.db.showRecentTeleports and addon.Recent.GetDisplayLimit() == value
+		end, function()
+			if InCombatLockdown() then return end
+			addon.db.showRecentTeleports = true
+			addon.db.recentTeleportsCount = value
+			Menu.Refresh()
+		end):SetEnabled(not InCombatLockdown())
+	end
 
 	local hearthstones = root:CreateButton(L["teleportsPreferredHearthstone"])
 	hearthstones:SetScrollMode(400)

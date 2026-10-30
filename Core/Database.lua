@@ -15,10 +15,12 @@ function addon.Database.Initialize()
  addon.db = AstralGateDB
  local defaults = {
   teleportsWorldMapEnabled = true,
+  teleportsSelectOnFirstOpen = true,
   portalHideMissing = false,
   portalShowTooltip = false,
   teleportsPreferredHearthstone = {},
   showRecentTeleports = false,
+  recentTeleportsCount = 8,
   collapsedSections = {},
  }
  for key, value in pairs(defaults) do addon.Database.SetDefault(key, value) end

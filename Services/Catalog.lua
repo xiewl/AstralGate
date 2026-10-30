@@ -130,7 +130,7 @@ local function OriginalName(action, itemID)
   return OriginalItemName(itemID, action.type == "toy")
  end
  if action.type == "pet" then
-  return C_PetJournal.GetPetInfoBySpeciesID(action.id) or "漫游者小刘"
+  return C_PetJournal.GetPetInfoBySpeciesID(action.id)
  end
  local info = C_Spell.GetSpellInfo(action.id)
  return info and info.name or UNKNOWNOBJECT or "Unknown"

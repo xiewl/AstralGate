@@ -90,22 +90,17 @@ local function requestHearthstoneItemData(itemID)
 	pendingHearthstoneItemLoads[itemID] = true
 	eItem:ContinueOnItemLoad(function()
 		pendingHearthstoneItemLoads[itemID] = nil
-		if Settings and Settings.NotifyUpdate then Settings.NotifyUpdate("ASTRALGATE_teleportsPreferredHearthstone") end
 	end)
 end
 
 local function getHearthstoneName(entry)
 	if not entry then return nil end
+	-- 菜单显示道具原名；不同炉石的施法名称可能同为“炉石”。
 	local name
-	if entry.spellID then
-		if C_Spell and C_Spell.GetSpellInfo then
-			local si = C_Spell.GetSpellInfo(entry.spellID)
-			name = normalizeHearthstoneName(si and si.name)
-		end
-		if C_Spell and C_Spell.GetSpellName then name = name or normalizeHearthstoneName(C_Spell.GetSpellName(entry.spellID)) end
-		if (not name or name == "") and GetSpellInfo then name = normalizeHearthstoneName(GetSpellInfo(entry.spellID)) end
+	if entry.isToy and C_ToyBox and C_ToyBox.GetToyInfo then
+		local _, toyName = C_ToyBox.GetToyInfo(entry.id)
+		name = normalizeHearthstoneName(toyName)
 	end
-	if (not name or name == "") and entry.isToy and C_ToyBox and C_ToyBox.GetToyInfo then name = normalizeHearthstoneName(C_ToyBox.GetToyInfo(entry.id)) end
 	if (not name or name == "") and entry.isToy and C_ToyBox and C_ToyBox.GetToyLink then
 		local toyLink = C_ToyBox.GetToyLink(entry.id)
 		if type(toyLink) == "string" then
@@ -128,17 +123,6 @@ local function getHearthstoneName(entry)
 	if not name or name == "" then requestHearthstoneItemData(entry.id) end
 	if name and name ~= "" then return name end
 	return UNKNOWNOBJECT or UNKNOWN or "Unknown"
-end
-
-function addon.Hearthstones.GetDropdownOptions(forceRefresh)
-	local randomLabel = L["teleportsPreferredHearthstoneRandom"] or "All owned Hearthstones"
-	local list, order = { random = randomLabel }, { "random" }
-	local options = addon.Hearthstones.GetSelectionOptions(forceRefresh)
-	for _, entry in ipairs(options) do
-		list[entry.value] = entry.text
-		table.insert(order, entry.value)
-	end
-	return list, order
 end
 
 -- 返回齿轮菜单的已拥有炉石选项；名称尚未缓存时请求异步加载。

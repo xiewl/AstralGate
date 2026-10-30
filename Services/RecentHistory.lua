@@ -1,7 +1,13 @@
--- 账号最近记录：始终监听成功施法，选项只控制显示；最多保留 8 个去重条目。
+-- 账号最近记录：始终监听成功施法，选项只控制显示；最多保留 20 个去重条目，显示数量由设置控制。
 local _, addon = ...
 
-local LIMIT = 8
+local LIMIT = 20
+
+function addon.Recent.GetDisplayLimit()
+ local value = tonumber(addon.db and addon.db.recentTeleportsCount) or 8
+ if value ~= value then value = 8 end
+ return math.max(2, math.min(LIMIT, math.ceil(value / 2) * 2))
+end
 local HEARTHSTONE_KEY = "hearthstone:random"
 local hearthstoneKeys = {}
 for _, stone in ipairs(addon.HearthstoneData) do
@@ -108,7 +114,7 @@ function addon.Recent.BuildSection(sections)
   if available[key] and not seen[key] then
    items[#items + 1] = available[key]
    seen[key] = true
-   if #items == LIMIT then break end
+   if #items == addon.Recent.GetDisplayLimit() then break end
   end
  end
  if #items > 0 then return { key = "recent", title = addon.L.recentTeleports, items = items } end

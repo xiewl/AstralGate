@@ -436,6 +436,16 @@ local function SetTeleportDisplayMode()
 	return true
 end
 
+-- 每次登录/重载只消费首次打开机会；普通刷新绝不重新选择标签。
+local firstMapOpenHandled = false
+local function HandleFirstMapOpen()
+ if firstMapOpenHandled then return end
+ firstMapOpenHandled = true
+ if not addon.db or not addon.db.teleportsSelectOnFirstOpen then return end
+ if IsPanelSuppressed() or (InCombatLockdown and InCombatLockdown()) then return end
+ SetTeleportDisplayMode()
+end
+
 local function LeaveDisplayModeIfNeeded()
 	if not QuestMapFrame or not IsTeleportDisplayModeActive() then return end
 	if InCombatLockdown and InCombatLockdown() then return end
@@ -1271,7 +1281,7 @@ local function worldMapEventHandler(self, event, arg1, arg2, arg3)
 				if addon.db and addon.db["teleportsWorldMapEnabled"] then
 					f:TryInit()
 					if QuestMapFrame and QuestMapFrame.ValidateTabs then QuestMapFrame:ValidateTabs() end
-					if f._selectOnNextShow and not IsPanelSuppressed() and SetTeleportDisplayMode() then f._selectOnNextShow = nil end
+					HandleFirstMapOpen()
 					QueuePanelRefresh({ delay = 0, invalidate = true })
 				else
 					if panel then SafeSetVisible(panel, false) end
@@ -1306,7 +1316,7 @@ function addon.MapPanel.Initialize()
 			if addon.db and addon.db["teleportsWorldMapEnabled"] then
 				f:TryInit()
 				if QuestMapFrame and QuestMapFrame.ValidateTabs then QuestMapFrame:ValidateTabs() end
-				if f._selectOnNextShow and not IsPanelSuppressed() and SetTeleportDisplayMode() then f._selectOnNextShow = nil end
+				HandleFirstMapOpen()
 				QueuePanelRefresh({ delay = 0, invalidate = true })
 			else
 				if panel then SafeSetVisible(panel, false) end
@@ -1333,7 +1343,7 @@ function addon.MapPanel.Refresh()
 				if addon.db and addon.db["teleportsWorldMapEnabled"] then
 					f:TryInit()
 					if QuestMapFrame and QuestMapFrame.ValidateTabs then QuestMapFrame:ValidateTabs() end
-					if f._selectOnNextShow and not IsPanelSuppressed() and SetTeleportDisplayMode() then f._selectOnNextShow = nil end
+					HandleFirstMapOpen()
 					QueuePanelRefresh({ delay = 0, invalidate = true })
 				else
 					if panel then SafeSetVisible(panel, false) end
@@ -1366,10 +1376,7 @@ function addon.MapPanel.Refresh()
 				return
 			end
 			if tabButton then SafeSetVisible(tabButton, true) end
-			SetTeleportDisplayMode()
 			QueuePanelRefresh({ delay = 0, invalidate = true })
-		else
-			f._selectOnNextShow = true
 		end
 	end
 end
@@ -1410,7 +1417,7 @@ function addon.MapPanel.Open(force)
 		end
 	end
 
-	if not SetTeleportDisplayMode() then f._selectOnNextShow = true end
+	SetTeleportDisplayMode()
 
 	if QuestMapFrame and QuestMapFrame.ValidateTabs then QuestMapFrame:ValidateTabs() end
 	if f and f.RefreshPanel then QueuePanelRefresh({ delay = 0 }) end

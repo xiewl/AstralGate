@@ -2,7 +2,7 @@
 
 独立世界地图传送面板，基于 R41Z0R 的 Enhance QoL Teleport Compendium。无需 Enhance QoL Core。不要同时启用原版或 MapTeleportTest 的地图面板。
 
-输入 /astralgate 打开面板；右上角齿轮提供最近使用、隐藏未拥有传送、提示信息和炉石选择。最近使用默认不显示，但始终静默记录；账号共用最多6条历史，当前角色无法使用的条目置灰显示，不受“隐藏未拥有的传送”选项影响。每次重新显示面板自动归顶，普通数据刷新保留滚动位置。
+输入 /astralgate 打开面板；右上角齿轮提供最近使用、隐藏未拥有传送、提示信息和炉石选择。最近使用默认不显示，但始终静默记录；账号共用最多20条历史，可选择隐藏或显示2～20条（偶数），默认8条，当前角色无法使用的条目置灰显示，不受“隐藏未拥有的传送”选项影响。每次重新显示面板自动归顶，普通数据刷新保留滚动位置。
 
 ## 目录与阅读顺序
 
@@ -37,7 +37,7 @@
 },
 ```
 
-- `action`：`type` 为 `spell`、`toy` 或 `item`，`id` 为对应 ID。物品需要装备时加 `equipSlot`；多个物品变体可使用 ID 表，`classItems` 指定职业对应物品，`ownedVariantsOnly` 优先列出已拥有变体。
+- `action`：`type` 为 `spell`、`toy`、`item` 或 `pet`（宠物的 `id` 为种类 ID，左键召唤、右键解散），`id` 为对应 ID。物品需要装备时加 `equipSlot`；多个物品变体可使用 ID 表，`classItems` 指定职业对应物品，`ownedVariantsOnly` 优先列出已拥有变体。
 - `destination`：`mapID` 读取目的地名称，并作为默认右键打开的地图。名称地图与定位地图不同时另填 `openMapID`。`x/y` 可选，有坐标才标点，无坐标只打开地图。
 - `requirements`：可选 `class`、`race`、`faction`、`engineering`、`specialization`（`gnomish`/`goblin`）。角色所在地图不限制显示，不再支持 `maps` 条件。
 - `display`：`forceName = "自定义名称"` 优先级最高；其次 `originName = true` 使用对象原名（法术名、玩具名或物品名）。均未指定时先取目的地地图名，无地图名再取对象原名。传送门按普通法术处理；首页统一炉石通过 `forceName` 设置名称。
@@ -57,3 +57,7 @@
 
 点击任意分类标题可收起或展开。分类状态按账号保存在 collapsedSections，重新打开地图、重新登录或切换客户端语言都会恢复；首次使用全部展开。
 
+
+齿轮菜单的“首次自动切换”仅在登录或重载后首次打开地图时切到传送标签，后续普通刷新不会主动切换。
+
+发布时运行根目录 Release.ps1：将 TOC 版本末位加一，生成 dist/AstralGate-版本号.zip。压缩包包含 AstralGate 顶层目录，排除开发脚本和旧压缩包。
