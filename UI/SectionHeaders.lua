@@ -14,17 +14,21 @@ end
 
 -- 返回标题按钮；折叠后只保留标题，传送按钮由列表布局决定是否创建。
 function Headers.Create(parent, section, width, onToggle, forceExpanded)
- local header = CreateFrame("Button", nil, parent)
+ local header = parent._header or CreateFrame("Button", nil, parent)
+ parent._header = header
  header:SetPoint("TOPLEFT", 0, 0)
  header:SetSize(width, 20)
  header:RegisterForClicks("LeftButtonUp")
  local collapsed = not forceExpanded and Headers.IsCollapsed(section.key)
- local icon = header:CreateTexture(nil, "ARTWORK")
+ local icon = header.Icon or header:CreateTexture(nil, "ARTWORK")
+ header.Icon = icon
  icon:SetPoint("LEFT", 0, 0)
  icon:SetSize(14, 14)
  icon:SetTexture(collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
  icon:SetShown(not forceExpanded)
- local label = header:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+ local label = header.Label or header:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+ header.Label = label
+ label:ClearAllPoints()
  if forceExpanded then
   label:SetPoint("LEFT", header, "LEFT", 0, 0)
  else
@@ -34,7 +38,8 @@ function Headers.Create(parent, section, width, onToggle, forceExpanded)
  label:SetJustifyH("LEFT")
  label:SetFont(addon.Player.defaultFont, 13, "OUTLINE")
  label:SetText(section.title or "")
- local highlight = header:CreateTexture(nil, "HIGHLIGHT")
+ local highlight = header.Highlight or header:CreateTexture(nil, "HIGHLIGHT")
+ header.Highlight = highlight
  highlight:SetAllPoints(header)
  highlight:SetColorTexture(1, 1, 1, 0.08)
  header:EnableMouse(not forceExpanded)

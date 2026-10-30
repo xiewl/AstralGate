@@ -677,12 +677,26 @@ local function EnsurePanel(parent)
 	return panel
 end
 
+-- WoW Frame 无法销毁；复用高水位对象，释放条目和回调引用。
+local rowPool, categoryPool = {}, {}
+local activeCategories = {}
 local function ClearContent()
-	if not scrollBox then return end
-	for _, child in ipairs({ scrollBox:GetChildren() }) do
-		child:Hide()
-		child:SetParent(nil)
-	end
+ for _, category in ipairs(activeCategories) do
+  for _, button in ipairs(category._rows or {}) do
+   button:Hide()
+   button:ClearAllPoints()
+   button.entry = nil
+   for _, script in ipairs({"PreClick", "PostClick", "OnEnter", "OnLeave"}) do button:SetScript(script, nil) end
+   rowPool[#rowPool + 1] = button
+  end
+  category._rows = nil
+  if category._header then category._header:SetScript("OnClick", nil) end
+  category:Hide()
+  category:ClearAllPoints()
+  categoryPool[#categoryPool + 1] = category
+ end
+ wipe(activeCategories)
+ if panel then panel._allButtons = {} end
 end
 
 local function CreateSecureSpellButton(parent, entry)
@@ -784,14 +798,19 @@ end
 
 -- MapLegend-style row button: icon left, text right, full-row highlight
 local function CreateLegendRowButton(parent, entry, width, height)
-	local b = CreateFrame("Button", nil, parent, "InsecureActionButtonTemplate")
+	local b = table.remove(rowPool) or CreateFrame("Button", nil, parent, "InsecureActionButtonTemplate")
+ b:SetParent(parent)
+ b:ClearAllPoints()
+ b:UnlockHighlight()
+ for _, attribute in ipairs({"type", "type1", "type2", "spell1", "macrotext", "macrotext1", "macrotext2", "item1", "unit", "checkselfcast", "house-neighborhood-guid1", "house-guid1", "house-plot-id1"}) do b:SetAttribute(attribute, nil) end
+ b:Show()
 	b:SetSize(width, height)
 	b.entry = entry
 	-- ConsolePort fires clicks as typerelease; force release-based casting for compatibility
 	if IsConsolePortLoaded() then b:SetAttribute("useOnKeyDown", false) end
 
 	-- icon
-	local icon = b:CreateTexture(nil, "ARTWORK")
+	local icon = b.Icon or b:CreateTexture(nil, "ARTWORK")
 	icon:SetPoint("LEFT", 4, 0)
 	icon:SetSize(height - 6, height - 6)
 	if entry.iconAtlas and C_Texture and C_Texture.GetAtlasInfo(entry.iconAtlas) then
@@ -802,7 +821,7 @@ local function CreateLegendRowButton(parent, entry, width, height)
 	b.Icon = icon
 
 	-- cooldown overlay on icon only
-	local cd = CreateFrame("Cooldown", nil, b, "CooldownFrameTemplate")
+	local cd = b.cooldownFrame or CreateFrame("Cooldown", nil, b, "CooldownFrameTemplate")
 	cd:SetAllPoints(icon) -- overlay only the icon, not the label row
 	cd:SetSwipeColor(0, 0, 0, 0.35)
 	cd:SetUseCircularEdge(true)
@@ -813,7 +832,7 @@ local function CreateLegendRowButton(parent, entry, width, height)
 
 
 	-- label to the right of the icon
-	local label = b:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	local label = b.Label or b:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 	label:SetPoint("LEFT", icon, "RIGHT", 8, 0)
 	label:SetPoint("RIGHT", -6, 0)
 	label:SetJustifyH("LEFT")
@@ -822,7 +841,8 @@ local function CreateLegendRowButton(parent, entry, width, height)
 	b.Label = label
 
 	-- full-row highlight (lockable) using the same atlas as MapLegend
-	local hl = b:CreateTexture(nil, "HIGHLIGHT")
+	local hl = b._highlight or b:CreateTexture(nil, "HIGHLIGHT")
+ b._highlight = hl
 	hl:SetAllPoints(b)
 	if hl.SetAtlas then
 		hl:SetAtlas("Options_List_Active", true)
@@ -940,6 +960,7 @@ end
 local function PopulatePanel()
 	if not panel then return end
 	ClearContent()
+ if panel._emptyMessage then panel._emptyMessage:Hide() end
 
 	-- keep references for lightweight cooldown refresh
 	panel._allButtons = {}
@@ -992,10 +1013,13 @@ local function PopulatePanel()
 
 	if not combined or #combined == 0 then
 		local msg = L[searching and "noTeleportSearchResults" or "noTeleportsAvailable"]
-		local empty = CreateFrame("Frame", nil, scrollBox)
+		local empty = panel._emptyMessage or CreateFrame("Frame", nil, scrollBox)
+  panel._emptyMessage = empty
+  empty:Show()
 		empty:SetPoint("TOPLEFT", 10, -10)
 		empty:SetSize(260, 24)
-		local label = empty:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+		local label = empty.Label or empty:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+  empty.Label = label
 		label:SetAllPoints(empty)
 		label:SetJustifyH("LEFT")
 		label:SetText(msg)
@@ -1021,7 +1045,9 @@ local function PopulatePanel()
 	local yOffset = -topPadding
 	for _, section in ipairs(combined) do
 		-- category container
-		local category = CreateFrame("Frame", nil, scrollBox)
+		local category = table.remove(categoryPool) or CreateFrame("Frame", nil, scrollBox)
+  activeCategories[#activeCategories + 1] = category
+  category:Show()
 		category:SetPoint("TOPLEFT", leftPadding, yOffset)
 		category:SetSize(usableWidth, 10) -- temporary height; will expand below
 
@@ -1031,6 +1057,7 @@ local function PopulatePanel()
   end, searching)
   local headerHeight = header:GetHeight()
   local buttons = {}
+  category._rows = buttons
   if searching or not addon.SectionHeaders.IsCollapsed(section.key) then
    for _, entry in ipairs(section.items or {}) do
     local b = CreateLegendRowButton(category, entry, colWidth, rowHeight)
@@ -1165,6 +1192,13 @@ function f:TryInit()
 		tab._astralgateContentLinked = true
 	end
 
+ if not panel._cleanupHook then
+  panel._cleanupHook = true
+  panel:HookScript("OnHide", function()
+   InvalidateCompendiumCache()
+   if not InCombatLockdown() then ClearContent() end
+  end)
+ end
 	-- Proactively build content once; subsequent tab/display changes will refresh as needed
 	QueuePanelRefresh({ delay = 0, invalidate = true })
 end
@@ -1232,6 +1266,7 @@ local function worldMapEventHandler(self, event, arg1, arg2, arg3)
 		-- Avoid Show/Hide while in combat
 		return
 	elseif event == "PLAYER_REGEN_ENABLED" then
+  if panel and not panel:IsShown() then ClearContent() end
 		local suppressed = IsPanelSuppressed()
 		if suppressed then
 			ApplySuppressedPanelState()
